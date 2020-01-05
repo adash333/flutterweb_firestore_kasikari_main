@@ -3,7 +3,6 @@ import 'package:firebase/firebase.dart';
 import 'package:firebase/firestore.dart' as fs;
 import 'dart:async';
 
-
 // initializeApp()の中身は、ご自身の設定に書き換えてください。
 void main() {
   initializeApp(
@@ -69,6 +68,14 @@ class _MyListState extends State<MyList> {
                                   child: const Text('編集'),
                                   onPressed: () {
                                     print("編集ボタンを押しました");
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        settings: const RouteSettings(name: "/edit"),
+                                        builder: (BuildContext context) =>
+                                          MyInputForm(document)
+                                      ),
+                                    );
                                   },
                                 ),
                               ]
@@ -94,7 +101,8 @@ class _MyListState extends State<MyList> {
             context,
             MaterialPageRoute(
               settings: const RouteSettings(name: "/new"),
-              builder: (BuildContext context) => MyInputForm()
+              // builder: (BuildContext context) => MyInputForm()
+              builder: (BuildContext context) => MyInputForm(null)
             ),
           );
         },
@@ -104,6 +112,10 @@ class _MyListState extends State<MyList> {
 }
 
 class MyInputForm extends StatefulWidget {
+  // MyInputFormに引数を追加
+  MyInputForm(this.document);
+  final fs.DocumentSnapshot document;
+
   @override
   _MyInputFormState createState() => new _MyInputFormState();
 }
@@ -138,6 +150,17 @@ class _MyInputFormState extends State<MyInputForm> {
   Widget build(BuildContext context) {
     
     fs.DocumentReference _mainReference = firestore().collection('kasikarimemo').doc();
+    // 編集データの作成
+    if (widget.document != null) { // 引数で渡したデータがあるかどうか
+      if(_data.user == null && _data.stuff == null) {
+        _data.borrowOrLend = widget.document.get('borrowOrLend');
+        _data.user = widget.document.get('user');
+        _data.stuff = widget.document.get('stuff');
+        _data.date = widget.document.get('date');
+      } else {
+        _mainReference = firestore().collection('kasikarimemo').doc(widget.document.id);
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(
