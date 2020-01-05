@@ -23,101 +23,58 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'リスト表示'),
+      home: new MyList(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
+class MyList extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _MyListState createState() => new _MyListState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  final fs.Firestore store = firestore();
-  final List<Map<String, dynamic>> messages = List();
-  final List<Map<String, dynamic>> kasikarimemo = List();
-
-  fetchMessages() async {
-    var messagesRef = await store.collection('messages').get();
-    var memosRef = await store.collection('kasikarimemo').get();
-
-    messagesRef.forEach(
-      (doc) {
-        messages.add(doc.data());
-      },
-    );
-
-    memosRef.forEach(
-      (doc) {
-        kasikarimemo.add(doc.data());
-      },
-    );
-
-    setState(() {});
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    fetchMessages();
-  }
-
+class _MyListState extends State<MyList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: const Text("リスト画面"),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          print("新規ボタンを押しました");
-          var m = Map<String, String>();
-          m['content'] = 'hogehoge';
-          await store.collection('messages').add(m);
-          setState(() {
-            messages.add(m);
-          });
-        },
-        child: Icon(Icons.add),
-      ),
-      
-      body: ListView(
-        children: kasikarimemo.map(
-          (message) {
-            return Card(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[ 
-                  ListTile(
-                    leading: FlutterLogo(size: 72.0),
-                    // title: Text(message['borrowOrLend']),
-                    title: Text("【 " + (message['borrowOrLend'] == "lend"?"貸": "借") +" 】"+ message['stuff']),
-                    // subtitle: Text(message['stuff']),
-                    subtitle: Text('期限 ： ' + message['date'].toString().substring(0,10) + "\n相手 ： " + message['user']),
-                    // isThreeLine: true,
-                  ),
-                  ButtonBar(
-                children: <Widget>[
-                  FlatButton(
-                    child: const Text('編集'),
-                    onPressed: () {
-                      print("編集ボタンを押しました");
-                    },
-                  ),
-                ],
-              )
-                ]
-              )
-            );
-          },
-        ).toList(),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: StreamBuilder<fs.QuerySnapshot> (
+          stream: firestore().collection('kasikarimemo').onSnapshot,
+          builder: (BuildContext context, AsyncSnapshot<fs.QuerySnapshot> snapshot) {
+            if (!snapshot.hasError) {
+              switch (snapshot.connectionState) {
+                case ConnectionState.waiting:
+                  return Text('Loading...');
+                default:
+                  return ListView(
+                    children: snapshot.data.docs.map((fs.DocumentSnapshot document) {
+                      return Card(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[ 
+                            ListTile(
+                              leading: FlutterLogo(size: 72.0),
+                              title: Text("【 " + (document.get('borrowOrLend') == "lend"?"貸": "借") +" 】"+ document.get('stuff')),
+                              subtitle: Text('期限 ： ' + document.get('date').toString().substring(0,10) + "\n相手 ： " + document.get('user')),
+                            ),
+                          ]
+                        )
+                      );
+                    }
+                    ).toList(),
+                  );
+              }
+            } else {
+              return Text('Error: ${snapshot.error}');
+            }
+          }
+        ), 
       )
-      
     );
   }
 }
+
