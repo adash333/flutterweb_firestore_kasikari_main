@@ -61,6 +61,16 @@ class _MyListState extends State<MyList> {
                               title: Text("【 " + (document.get('borrowOrLend') == "lend"?"貸": "借") +" 】"+ document.get('stuff')),
                               subtitle: Text('期限 ： ' + document.get('date').toString().substring(0,10) + "\n相手 ： " + document.get('user')),
                             ),
+                            ButtonBar(
+                              children: <Widget>[
+                                FlatButton(
+                                  child: const Text('編集'),
+                                  onPressed: () {
+                                    print("編集ボタンを押しました");
+                                  },
+                                ),
+                              ]
+                            )
                           ]
                         )
                       );
@@ -73,8 +83,13 @@ class _MyListState extends State<MyList> {
             }
           }
         ), 
-      )
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
+        onPressed: () {
+          print("新規作成ボタンを押しました");
+        },
+      ),
     );
   }
 }
-
