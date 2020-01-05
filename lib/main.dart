@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase/firebase.dart';
 import 'package:firebase/firestore.dart' as fs;
+import 'dart:async';
+
 
 // initializeApp()の中身は、ご自身の設定に書き換えてください。
 void main() {
@@ -134,6 +136,9 @@ class _MyInputFormState extends State<MyInputForm> {
 
   @override
   Widget build(BuildContext context) {
+    
+    fs.DocumentReference _mainReference = firestore().collection('kasikarimemo').doc();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('かしかり入力'),
@@ -142,6 +147,18 @@ class _MyInputFormState extends State<MyInputForm> {
             icon: Icon(Icons.save),
             onPressed: () {
               print("保存ボタンを押しました");
+              if (_formKey.currentState.validate()) {
+                _formKey.currentState.save();
+                _mainReference.set(
+                  {
+                    'borrowOrLend': _data.borrowOrLend,
+                    'user': _data.user,
+                    'stuff': _data.stuff,
+                    'date': _data.date
+                  }
+                );
+                Navigator.pop(context);
+              }
             }
           ),
           IconButton(
@@ -184,6 +201,15 @@ class _MyInputFormState extends State<MyInputForm> {
                     hintText: '相手の名前',
                     labelText: 'Name',
                   ),
+                  onSaved: (String value) {
+                    _data.user = value;
+                  },
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return '名前は必須入力項目です';
+                    }
+                  },
+                  initialValue: _data.user,
                 ),
 
                 TextFormField(
@@ -192,6 +218,15 @@ class _MyInputFormState extends State<MyInputForm> {
                     hintText: '借りたもの、貸したもの',
                     labelText: 'loan',
                   ),
+                  onSaved: (String value) {
+                    _data.stuff = value;
+                  },
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return '借りたもの、貸したものは必須入力項目です';
+                    }
+                  },
+                  initialValue: _data.stuff,
                 ),
 
                 Padding(
