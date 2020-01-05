@@ -88,6 +88,13 @@ class _MyListState extends State<MyList> {
         child: const Icon(Icons.add),
         onPressed: () {
           print("新規作成ボタンを押しました");
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              settings: const RouteSettings(name: "/new"),
+              builder: (BuildContext context) => MyInputForm()
+            ),
+          );
         },
       ),
     );
@@ -109,6 +116,21 @@ class _FormData {
 class _MyInputFormState extends State<MyInputForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _FormData _data = _FormData();
+
+  Future <DateTime> _selectTime(BuildContext context) {
+    return showDatePicker(
+      context: context,
+      initialDate: _data.date,
+      firstDate: DateTime(_data.date.year - 2),
+      lastDate: DateTime(_data.date.year + 2),
+    );
+  }
+
+  void _setLendOrRent(String value) {
+    setState(() {
+      _data.borrowOrLend = value;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -143,6 +165,7 @@ class _MyInputFormState extends State<MyInputForm> {
                   title: Text("借りた"),
                   onChanged: (String value) {
                     print("借りたをタッチしました");
+                    _setLendOrRent(value);
                   },
                 ),
                 RadioListTile(
@@ -151,6 +174,7 @@ class _MyInputFormState extends State<MyInputForm> {
                   title: Text("貸した"),
                   onChanged: (String value) {
                     print("貸したをタッチしました");
+                    _setLendOrRent(value);
                   },
                 ),
 
@@ -179,6 +203,13 @@ class _MyInputFormState extends State<MyInputForm> {
                   child: const Text("締切日変更"),
                   onPressed: () {
                     print("締切日変更をタップしました");
+                    _selectTime(context).then((time){
+                      if (time != null && time != _data.date) {
+                        setState( () {
+                          _data.date = time;
+                        });
+                      }
+                    });
                   },
                 ),
               ],
