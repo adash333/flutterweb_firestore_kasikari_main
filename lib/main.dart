@@ -148,8 +148,9 @@ class _MyInputFormState extends State<MyInputForm> {
 
   @override
   Widget build(BuildContext context) {
-    
     fs.DocumentReference _mainReference = firestore().collection('kasikarimemo').doc();
+    // 削除フラグ
+    bool deleteFlg = false;
     // 編集データの作成
     if (widget.document != null) { // 引数で渡したデータがあるかどうか
       if(_data.user == null && _data.stuff == null) {
@@ -159,7 +160,11 @@ class _MyInputFormState extends State<MyInputForm> {
         _data.date = widget.document.get('date');
       } else {
         _mainReference = firestore().collection('kasikarimemo').doc(widget.document.id);
+        // 削除フラグ
+        deleteFlg = true;
       }
+      // 削除フラグ
+      //deleteFlg = true;
     }
 
     return Scaffold(
@@ -186,8 +191,10 @@ class _MyInputFormState extends State<MyInputForm> {
           ),
           IconButton(
             icon: Icon(Icons.delete),
-            onPressed: () {
+            onPressed: !deleteFlg ? null : () {
               print("削除ボタンを押しました");
+              _mainReference.delete();
+              Navigator.pop(context);
             },
           ),
         ],
